@@ -12,3 +12,5 @@ DevIL is an LGPL License which can be found here: http://openil.sourceforge.net/
 More information on ZaaIL can be found on the ZaaLabs website: http://www.zaalabs.com/tag/zaail/
 
 ZaaIL was ported by Aaron Boushley (@boushley) and Nate Beck (@jnbeck) of ZaaLabs.
+
+Test Images for use with ZaaIL can be found in a separate repository located here: http://github.com/ZaaLabs/ZaaIL-TestImages
