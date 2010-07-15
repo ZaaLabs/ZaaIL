@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Copyright (c) 2010 ZaaLabs, Ltd. (http://www.zaalabs.com)
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="400" minHeight="400"
+			   creationComplete="onCreationComplete(event)"
+			   viewSourceURL="http://zaalabs.com/demo/ImageConverter/srcview/index.html">
+
+	<fx:Script>
+		<![CDATA[
+			import cmodule.zaail.CLibInit;
+			
+			import com.zaalabs.zaail.ZaaILInterface;
+			
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.graphics.codec.PNGEncoder;
+			
+			[Bindable] protected var showHowTo:Boolean = true;
+			
+			protected var lib:Object;
+			protected var loader:CLibInit;
+			protected var ref:FileReference;
+			protected var bmd:BitmapData;
+			
+			protected function onCreationComplete(event:FlexEvent):void
+			{
+				loader = new CLibInit();
+				lib = loader.init();
+				ref = new FileReference();
+				
+				addListeners();
+			}
+			
+			protected function addListeners():void
+			{
+				ref.addEventListener(Event.SELECT, onFileSelected);
+				ref.addEventListener(Event.COMPLETE, onFileLoaded);
+			}
+			
+			protected function onLoadClick(event:MouseEvent):void
+			{
+				ref.browse([ZaaILInterface.FILE_FILTER]);
+			}
+			
+			protected function onFileSelected(event:Event):void
+			{
+				showHowTo = false;
+				ref.load();
+			}
+			
+			protected function onFileLoaded(event:Event):void
+			{
+				var fileContents:ByteArray = ref.data;
+				var output:ByteArray = new ByteArray();
+				loader.supplyFile(ref.name, fileContents);
+				
+				lib.ilInit();
+				lib.ilOriginFunc(ZaaILInterface.IL_ORIGIN_UPPER_LEFT);
+				lib.ilEnable(ZaaILInterface.IL_ORIGIN_SET);
+				
+				if(lib.ilLoadImage(ref.name) != 1)	// 1 means successful load
+				{
+					Alert.show("Could not load the selected image", "Error Loading Image");
+				}
+				
+				var width:int = lib.ilGetInteger(ZaaILInterface.IL_IMAGE_WIDTH);
+				var height:int = lib.ilGetInteger(ZaaILInterface.IL_IMAGE_HEIGHT);
+				var depth:int = lib.ilGetInteger(ZaaILInterface.IL_IMAGE_DEPTH);
+				lib.ilGetPixels(0, 0, 0, width, height, depth, output);
+				output.position = 0;
+				
+				bmd = new BitmapData(width, height);
+				bmd.setPixels(new Rectangle(0, 0, width, height), output);
+				
+				previewImage.source = bmd;	// Set the preview image
+			}
+
+			protected function onSaveClick(event:MouseEvent):void
+			{
+				var encoder:PNGEncoder = new PNGEncoder();
+				var imageBytes:ByteArray = encoder.encode(bmd);
+				var fr:FileReference = new FileReference();
+				fr.save(imageBytes,"export.png");
+			}
+
+			protected function onCloseHowToClick(event:MouseEvent):void
+			{
+				showHowTo = false;
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Panel title="ZaaIL Image Converter" width="100%" height="100%" backgroundColor="{bgColor.selectedColor}">
+		
+		<s:Panel title="How to use..." width="400" height="350"
+				 horizontalCenter="0" verticalCenter="0" visible="{showHowTo}">
+			<s:layout>
+				<s:VerticalLayout />
+			</s:layout>
+			<s:RichText width="100%" height="100%" paddingLeft="5" paddingRight="5" paddingTop="5" >
+				<s:text>ZaaIL is a port of the DevIL open source Imaging Library.
+					
+Ported by Aaron Boushley and Nate Beck of ZaaLabs, Ltd.
+
+It's pretty simple really... Click to load button and load any of the supported formats.
+				
+You can save the bitmap out to PNG by clicking the Save button.
+				
+No files will be transferred, this runs 100% local. Right-click -> View Source to see how this is done.
+				
+Supported Formats:
+bmp,blp,dcx,dds,dicom,wad,fits,gif,hdr,icns,ico,icon,iff,ilbm,iwi,lif,mdl,mp3,pbm,pcx,pcd,pic,pix,png,pnm,psd,psp,pxr,raw,rot,sgi,sun,texture,tga,tpl,utx,vtf,wal,wbmp,wdp,xpm,jpg,jpeg
+					
+DevIL: http://openil.sourceforge.net
+ZaaLabs: http://www.zaalabs.com
+				</s:text>
+			</s:RichText>
+			
+			<s:controlBarContent>
+				<mx:Spacer width="100%" />
+				<s:Button label="Hide" click="onCloseHowToClick(event)" />				
+				<mx:Spacer width="100%" />
+			</s:controlBarContent>
+		</s:Panel>
+		
+		<s:BitmapImage id="previewImage" />
+		
+		<s:controlBarContent>
+			<s:Group height="100%">
+				<s:layout>
+					<s:HorizontalLayout verticalAlign="middle" />
+				</s:layout>
+				<s:Button label="Load" click="onLoadClick(event)" />
+				<s:Button label="Save" click="onSaveClick(event)" />
+				<s:Label text="BG Color:" />
+				<mx:ColorPicker id="bgColor" selectedColor="0xFFFFFF" />
+			</s:Group>
+			<mx:Spacer width="100%" />
+			<s:BitmapImage source="@Embed('assets/icon.png')" />
+		</s:controlBarContent>
+	</s:Panel>
+	
+</s:Application>

@@ -1,0 +1,14 @@
+ _____             _____  __  
+/ _  / __ _  __ _  \_   \/ /  
+\// / / _` |/ _` |  / /\/ /   
+ / //\ (_| | (_| /\/ /_/ /___ 
+/____/\__,_|\__,_\____/\____/
+
+ZaaIL is an open source cross compilation of DevIL to Flash using Adobe Alchemy.
+
+Information for DevIL can be found here: http://openil.sourceforge.net/
+DevIL is an LGPL License which can be found here: http://openil.sourceforge.net/license.php
+
+More information on ZaaIL can be found on the ZaaLabs website: http://www.zaalabs.com/tag/zaail/
+
+ZaaIL was ported by Aaron Boushley (@boushley) and Nate Beck (@jnbeck) of ZaaLabs.
